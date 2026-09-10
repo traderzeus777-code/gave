@@ -1,0 +1,3614 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
+
+<title>gave. — Your digital identity</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+
+:root{
+  --black:#000000;
+  --ink:#1d1d1f;
+  --white:#ffffff;
+  --fog:#f5f5f7;
+  --mist:#fbfbfd;
+  --line:#e5e5ea;
+  --steel:#86868b;
+  --danger:#1d1d1f;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  height:100%;
+}
+
+body{
+  margin:0;
+  background:var(--fog);
+  min-height:100vh;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    Inter,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  color:var(--ink);
+
+  -webkit-font-smoothing:antialiased;
+}
+
+button,
+input,
+textarea,
+select{
+  font:inherit;
+  color:inherit;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+button{
+  cursor:pointer;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loadingScreen{
+  position:fixed;
+  inset:0;
+
+  background:var(--white);
+
+  z-index:700;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:13px;
+  color:var(--steel);
+
+  letter-spacing:-.01em;
+}
+
+.loadingScreen.hidden{
+  display:none;
+}
+
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+.authGate{
+  position:fixed;
+  inset:0;
+
+  background:var(--fog);
+
+  z-index:600;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:24px;
+}
+
+.authGate.hidden{
+  display:none;
+}
+
+.authBox{
+  width:min(380px,100%);
+
+  background:var(--white);
+
+  border-radius:20px;
+
+  padding:36px 30px;
+
+  border:1px solid var(--line);
+
+  text-align:center;
+}
+
+.authBox .mark{
+  font-size:17px;
+  font-weight:700;
+
+  letter-spacing:-.02em;
+
+  margin-bottom:20px;
+
+  color:var(--black);
+}
+
+.authBox h2{
+  font-size:20px;
+  font-weight:600;
+
+  letter-spacing:-.02em;
+
+  margin:0 0 8px;
+}
+
+.authBox p{
+  font-size:13px;
+  color:var(--steel);
+
+  margin:0 0 22px;
+
+  line-height:1.5;
+}
+
+.authBox input{
+  width:100%;
+
+  border:1px solid var(--line);
+
+  background:var(--white);
+
+  border-radius:11px;
+
+  padding:13px 14px;
+
+  font-size:14px;
+
+  margin-bottom:10px;
+
+  outline:none;
+
+  transition:border-color .15s;
+}
+
+.authBox input:focus{
+  border-color:var(--black);
+}
+
+.authBox button{
+  width:100%;
+
+  border:0;
+
+  border-radius:11px;
+
+  background:var(--black);
+
+  color:var(--white);
+
+  padding:13px;
+
+  font-weight:600;
+
+  font-size:14px;
+
+  letter-spacing:-.01em;
+
+  transition:opacity .15s;
+}
+
+.authBox button:active{
+  opacity:.75;
+}
+
+.authMsg{
+  font-size:12px;
+
+  color:var(--steel);
+
+  margin-top:14px;
+
+  line-height:1.5;
+
+  min-height:14px;
+}
+
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+.page{
+  display:flex;
+  justify-content:center;
+
+  padding:96px 18px 60px;
+
+  position:relative;
+}
+
+.topBar{
+  position:fixed;
+
+  top:18px;
+  left:0;
+  right:0;
+
+  display:flex;
+  justify-content:center;
+
+  z-index:40;
+}
+
+.topBarInner{
+  width:100%;
+  max-width:420px;
+
+  display:flex;
+  justify-content:space-between;
+
+  padding:0 2px;
+}
+
+.circleBtn{
+  width:40px;
+  height:40px;
+
+  border-radius:50%;
+
+  background:rgba(255,255,255,.72);
+
+  -webkit-backdrop-filter:
+    saturate(180%) blur(20px);
+
+  backdrop-filter:
+    saturate(180%) blur(20px);
+
+  border:1px solid rgba(0,0,0,.06);
+
+  display:grid;
+  place-items:center;
+
+  transition:transform .15s ease;
+}
+
+.circleBtn:active{
+  transform:scale(.92);
+}
+
+.circleBtn svg{
+  width:17px;
+  height:17px;
+}
+
+.card{
+  width:100%;
+  max-width:420px;
+
+  text-align:center;
+}
+
+.avatarWrap{
+  display:flex;
+  justify-content:center;
+
+  margin-bottom:20px;
+}
+
+.avatar{
+  width:104px;
+  height:104px;
+
+  border-radius:50%;
+
+  overflow:hidden;
+
+  background:var(--black);
+
+  display:grid;
+  place-items:center;
+
+  color:var(--white);
+
+  font-weight:600;
+
+  font-size:28px;
+
+  letter-spacing:-.02em;
+
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.04);
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+.pName{
+  font-size:26px;
+
+  font-weight:700;
+
+  color:var(--black);
+
+  margin:0 0 5px;
+
+  letter-spacing:-.03em;
+
+  line-height:1.2;
+}
+
+.pName:empty:before{
+  content:"Your name";
+
+  color:var(--steel);
+
+  font-weight:600;
+
+  opacity:.6;
+}
+
+.pBio{
+  font-size:14px;
+
+  color:var(--steel);
+
+  line-height:1.5;
+
+  max-width:290px;
+
+  margin:0 auto 30px;
+
+  font-weight:500;
+}
+
+.pBio:empty:before{
+  content:"Add a short bio / tagline";
+
+  opacity:.7;
+}
+
+
+/* =========================================================
+   GALLERY PREVIEW
+========================================================= */
+
+.galViewGrid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:6px;
+
+  margin-bottom:24px;
+}
+
+.galViewItem{
+  aspect-ratio:1;
+
+  border-radius:10px;
+
+  overflow:hidden;
+}
+
+.galViewItem img{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+
+/* =========================================================
+   LINK PREVIEW
+========================================================= */
+
+.linkList{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+}
+
+.linkRow{
+  display:flex;
+
+  align-items:center;
+
+  gap:13px;
+
+  background:var(--white);
+
+  border:1px solid var(--line);
+
+  border-radius:16px;
+
+  padding:13px 16px;
+
+  transition:
+    border-color .15s,
+    transform .1s;
+}
+
+.linkRow:active{
+  transform:scale(.985);
+}
+
+.linkBadge{
+  width:36px;
+  height:36px;
+
+  border-radius:50%;
+
+  flex-shrink:0;
+
+  display:grid;
+  place-items:center;
+
+  background:var(--black);
+
+  color:#fff;
+}
+
+.linkBadge svg{
+  width:17px;
+  height:17px;
+}
+
+.linkText{
+  flex:1;
+
+  display:flex;
+
+  flex-direction:column;
+
+  text-align:left;
+
+  min-width:0;
+}
+
+.linkTitle{
+  font-size:14.5px;
+
+  font-weight:600;
+
+  color:var(--ink);
+
+  letter-spacing:-.01em;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  white-space:nowrap;
+}
+
+.linkSubtitle{
+  font-size:12px;
+
+  color:var(--steel);
+
+  margin-top:1px;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  white-space:nowrap;
+}
+
+.linkChevron{
+  flex-shrink:0;
+
+  opacity:.25;
+}
+
+.linkChevron svg{
+  width:9px;
+  height:9px;
+}
+
+.emptyState{
+  padding:30px 20px;
+
+  border:1px dashed var(--line);
+
+  border-radius:16px;
+
+  color:var(--steel);
+
+  font-size:13px;
+
+  line-height:1.5;
+}
+
+.poweredBy{
+  display:inline-block;
+
+  margin-top:32px;
+
+  font-size:11px;
+
+  color:var(--steel);
+
+  font-weight:500;
+
+  letter-spacing:.01em;
+}
+
+
+/* =========================================================
+   DRAWER
+========================================================= */
+
+.drawerBackdrop{
+  position:fixed;
+
+  inset:0;
+
+  background:rgba(0,0,0,.35);
+
+  z-index:80;
+
+  display:none;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  -webkit-backdrop-filter:blur(2px);
+
+  backdrop-filter:blur(2px);
+}
+
+.drawerBackdrop.open{
+  display:flex;
+}
+
+.drawer{
+  width:100%;
+
+  max-width:460px;
+
+  max-height:90vh;
+
+  overflow:auto;
+
+  background:var(--fog);
+
+  border-radius:
+    20px 20px 0 0;
+
+  padding:14px 0 34px;
+
+  -webkit-overflow-scrolling:touch;
+}
+
+.drawerHandle{
+  width:36px;
+  height:5px;
+
+  border-radius:3px;
+
+  background:var(--line);
+
+  margin:0 auto 14px;
+}
+
+.drawerHead{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:18px;
+
+  padding:0 20px;
+}
+
+.drawerHead h2{
+  font-size:17px;
+
+  font-weight:700;
+
+  letter-spacing:-.02em;
+
+  margin:0;
+}
+
+.drawerClose{
+  border:0;
+
+  background:rgba(0,0,0,.06);
+
+  border-radius:50%;
+
+  width:28px;
+  height:28px;
+
+  display:grid;
+
+  place-items:center;
+}
+
+.drawerClose svg{
+  width:11px;
+  height:11px;
+}
+
+
+/* =========================================================
+   GROUPS
+========================================================= */
+
+.groupLabel{
+  font-size:12px;
+
+  font-weight:600;
+
+  color:var(--steel);
+
+  padding:0 20px;
+
+  margin:22px 0 8px;
+}
+
+.groupLabel:first-of-type{
+  margin-top:0;
+}
+
+.group{
+  background:var(--white);
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+
+  margin:0 16px;
+
+  overflow:hidden;
+}
+
+.row{
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  padding:12px 16px;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.row:last-child{
+  border-bottom:0;
+}
+
+.rowLabel{
+  font-size:13px;
+
+  color:var(--steel);
+
+  width:64px;
+
+  flex-shrink:0;
+}
+
+.rowInput{
+  flex:1;
+
+  border:0;
+
+  background:transparent;
+
+  outline:none;
+
+  font-size:14.5px;
+
+  color:var(--ink);
+
+  padding:2px 0;
+
+  min-width:0;
+}
+
+.rowInput::placeholder{
+  color:#c7c7cc;
+}
+
+textarea.rowInput{
+  resize:vertical;
+
+  min-height:44px;
+
+  padding-top:8px;
+}
+
+
+/* =========================================================
+   PHOTO
+========================================================= */
+
+.photoRow{
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  padding:12px 16px;
+}
+
+.photoCircle{
+  width:44px;
+  height:44px;
+
+  border-radius:50%;
+
+  overflow:hidden;
+
+  background:var(--fog);
+
+  display:grid;
+
+  place-items:center;
+
+  font-size:9px;
+
+  color:var(--steel);
+
+  flex-shrink:0;
+
+  border:1px solid var(--line);
+}
+
+.photoCircle img{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+.fileBtn{
+  margin-left:auto;
+
+  border:1px solid var(--line);
+
+  background:var(--white);
+
+  border-radius:10px;
+
+  padding:8px 13px;
+
+  font-size:12.5px;
+
+  font-weight:600;
+
+  color:var(--ink);
+
+  cursor:pointer;
+
+  display:inline-block;
+}
+
+.fileBtn input{
+  display:none;
+}
+
+
+/* =========================================================
+   GALLERY EDITOR
+========================================================= */
+
+.galGrid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:8px;
+
+  margin:0 16px 24px;
+}
+
+.galSlot{
+  position:relative;
+
+  aspect-ratio:1;
+
+  border-radius:12px;
+
+  overflow:hidden;
+
+  background:var(--white);
+
+  border:1px solid var(--line);
+}
+
+.galSlot img{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+.galRemove{
+  position:absolute;
+
+  top:4px;
+  right:4px;
+
+  width:20px;
+  height:20px;
+
+  border-radius:50%;
+
+  background:rgba(0,0,0,.6);
+
+  color:#fff;
+
+  border:0;
+
+  font-size:14px;
+
+  line-height:1;
+
+  display:grid;
+
+  place-items:center;
+}
+
+.galAdd{
+  display:grid;
+
+  place-items:center;
+
+  font-size:24px;
+
+  color:var(--steel);
+
+  cursor:pointer;
+
+  border:1px dashed var(--line);
+
+  background:var(--fog);
+}
+
+.galAdd input{
+  display:none;
+}
+
+
+/* =========================================================
+   LINK EDITOR
+========================================================= */
+
+.linkEditRow{
+  background:var(--white);
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+
+  padding:4px 0;
+
+  margin:0 16px 10px;
+}
+
+.linkEditRow .row{
+  padding:11px 16px;
+}
+
+.removeLink{
+  width:100%;
+
+  border:0;
+
+  background:transparent;
+
+  color:var(--steel);
+
+  font-size:12.5px;
+
+  font-weight:600;
+
+  padding:11px 16px;
+
+  text-align:left;
+}
+
+.platformPicker{
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:8px;
+
+  padding:14px 16px 12px;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.platformOpt{
+  width:36px;
+  height:36px;
+
+  border-radius:50%;
+
+  flex-shrink:0;
+
+  border:1px solid var(--line);
+
+  background:var(--fog);
+
+  color:var(--ink);
+
+  display:grid;
+
+  place-items:center;
+
+  transition:
+    transform .12s,
+    background .12s,
+    color .12s,
+    border-color .12s;
+}
+
+.platformOpt svg{
+  width:15px;
+  height:15px;
+}
+
+.platformOpt.active{
+  background:var(--black);
+
+  border-color:var(--black);
+
+  color:#fff;
+
+  transform:scale(1.06);
+}
+
+.platformOpt:active{
+  transform:scale(.92);
+}
+
+.valueInputWrap{
+  flex:1;
+
+  display:flex;
+
+  align-items:center;
+
+  min-width:0;
+}
+
+.valuePrefix{
+  font-size:14.5px;
+
+  color:var(--steel);
+
+  white-space:nowrap;
+
+  flex-shrink:0;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.addLink{
+  width:calc(100% - 32px);
+
+  margin:0 16px 24px;
+
+  border:1px dashed var(--line);
+
+  background:transparent;
+
+  border-radius:14px;
+
+  padding:13px;
+
+  font-size:13.5px;
+
+  font-weight:600;
+
+  color:var(--steel);
+}
+
+.saveBtn{
+  width:calc(100% - 32px);
+
+  margin:0 16px;
+
+  border:0;
+
+  border-radius:14px;
+
+  background:var(--black);
+
+  color:var(--white);
+
+  padding:15px;
+
+  font-weight:600;
+
+  font-size:14.5px;
+
+  letter-spacing:-.01em;
+
+  transition:opacity .15s;
+}
+
+.saveBtn:active{
+  opacity:.75;
+}
+
+.saveBtn:disabled{
+  opacity:.5;
+
+  cursor:not-allowed;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast{
+  position:fixed;
+
+  bottom:24px;
+  left:50%;
+
+  transform:
+    translateX(-50%)
+    translateY(15px);
+
+  background:var(--black);
+
+  color:var(--white);
+
+  padding:11px 18px;
+
+  border-radius:999px;
+
+  font-size:12.5px;
+
+  font-weight:500;
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transition:.25s;
+
+  z-index:900;
+
+  max-width:90vw;
+
+  text-align:center;
+}
+
+.toast.show{
+  opacity:1;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =======================================================
+     LOADING
+======================================================== -->
+
+<div
+  id="loadingScreen"
+  class="loadingScreen"
+>
+  Loading your card…
+</div>
+
+
+<!-- =======================================================
+     AUTH
+======================================================== -->
+
+<div
+  id="authGate"
+  class="authGate hidden"
+>
+
+  <div class="authBox">
+
+    <div class="mark">
+      gave.
+    </div>
+
+    <h2>
+      Claim this card
+    </h2>
+
+    <p>
+      Enter your email and we'll send you a magic link
+      to sign in — no password needed.
+    </p>
+
+    <input
+      id="authEmail"
+      type="email"
+      placeholder="you@email.com"
+    >
+
+    <button
+      onclick="sendMagicLink()"
+    >
+      Send magic link
+    </button>
+
+    <div
+      id="authMsg"
+      class="authMsg"
+    ></div>
+
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     TOP BAR
+======================================================== -->
+
+<div class="topBar">
+
+  <div class="topBarInner">
+
+    <button
+      class="circleBtn"
+      type="button"
+      onclick="shareProfile()"
+      aria-label="Share"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="18" cy="5" r="2.5"/>
+        <circle cx="6" cy="12" r="2.5"/>
+        <circle cx="18" cy="19" r="2.5"/>
+        <path d="m8.2 10.8 7.6-4.4"/>
+        <path d="m8.2 13.2 7.6 4.4"/>
+      </svg>
+
+    </button>
+
+
+    <button
+      class="circleBtn"
+      type="button"
+      onclick="openDrawer()"
+      aria-label="Edit"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+      </svg>
+
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     PROFILE PREVIEW
+======================================================== -->
+
+<div class="page">
+
+  <div class="card">
+
+    <div class="avatarWrap">
+
+      <div
+        class="avatar"
+        id="avatarBox"
+      ></div>
+
+    </div>
+
+
+    <h1
+      class="pName"
+      id="viewName"
+    ></h1>
+
+
+    <p
+      class="pBio"
+      id="viewBio"
+    ></p>
+
+
+    <div
+      class="galViewGrid"
+      id="viewGallery"
+    ></div>
+
+
+    <div
+      class="linkList"
+      id="viewLinks"
+    ></div>
+
+
+    <a
+      class="poweredBy"
+      href="https://gave.to"
+      target="_blank"
+      rel="noopener"
+    >
+      Powered by gave.
+    </a>
+
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     EDIT DRAWER
+======================================================== -->
+
+<div
+  id="drawerBackdrop"
+  class="drawerBackdrop"
+  onclick="if(event.target===this)closeDrawer()"
+>
+
+  <div class="drawer">
+
+    <div class="drawerHandle"></div>
+
+
+    <div class="drawerHead">
+
+      <h2>
+        Edit your gave.
+      </h2>
+
+      <button
+        class="drawerClose"
+        type="button"
+        onclick="closeDrawer()"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        >
+          <path d="M4 4l16 16M20 4L4 20"/>
+        </svg>
+
+      </button>
+
+    </div>
+
+
+    <!-- PROFILE -->
+
+    <div class="groupLabel">
+      Profile
+    </div>
+
+    <div class="group">
+
+      <div class="photoRow">
+
+        <div
+          class="photoCircle"
+          id="photoThumb"
+        >
+          Photo
+        </div>
+
+        <label
+          class="fileBtn"
+          for="avatarInput"
+        >
+          Change
+
+          <input
+            type="file"
+            accept="image/*"
+            id="avatarInput"
+          >
+
+        </label>
+
+      </div>
+
+
+      <div class="row">
+
+        <span class="rowLabel">
+          Name
+        </span>
+
+        <input
+          class="rowInput"
+          id="fName"
+          placeholder="Your name"
+        >
+
+      </div>
+
+
+      <div class="row">
+
+        <span class="rowLabel">
+          Bio
+        </span>
+
+        <textarea
+          class="rowInput"
+          id="fBio"
+          placeholder="e.g. 4-Year Trader · Quant Researcher"
+        ></textarea>
+
+      </div>
+
+    </div>
+
+
+    <!-- GALLERY -->
+
+    <div class="groupLabel">
+
+      Gallery
+
+      <span
+        style="font-weight:400;color:var(--steel)"
+      >
+        (max 6)
+      </span>
+
+    </div>
+
+
+    <div
+      class="galGrid"
+      id="galleryEditGrid"
+    ></div>
+
+
+    <!-- LINKS -->
+
+    <div class="groupLabel">
+      Links
+    </div>
+
+
+    <div
+      id="linkEditList"
+    ></div>
+
+
+    <button
+      class="addLink"
+      type="button"
+      onclick="addLinkRow()"
+    >
+      + Add a link
+    </button>
+
+
+    <button
+      class="saveBtn"
+      id="saveButton"
+      type="button"
+      onclick="saveProfile()"
+    >
+      Save
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div
+  id="toast"
+  class="toast"
+></div>
+
+
+<script>
+
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+  "https://fhapztqofhhhfdtjfpko.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  "sb_publishable_FGrJTthQzJbn-Qr3TJFp5g_xXIL4CMr";
+
+const sb =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
+/* =========================================================
+   PLATFORMS
+========================================================= */
+
+const PLATFORMS = [
+  "Discord",
+  "Facebook",
+  "Instagram",
+  "TikTok",
+  "Telegram",
+  "YouTube",
+  "X",
+  "WhatsApp",
+  "Website",
+  "Custom"
+];
+
+
+/* =========================================================
+   ICONS
+========================================================= */
+
+const PLATFORM_ICONS = {
+
+  Instagram:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85 0 3.2-.01 3.58-.07 4.85-.15 3.22-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07-3.2 0-3.58-.01-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85 0-3.2.01-3.58.07-4.85.15-3.23 1.66-4.77 4.92-4.92 1.27-.06 1.65-.07 4.85-.07zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zm5.4-8.4a1.17 1.17 0 1 1-2.33 0 1.17 1.17 0 0 1 2.33 0z"/></svg>',
+
+  TikTok:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82c-.7-.76-1.1-1.75-1.1-2.82h-3.2v13.4a2.6 2.6 0 1 1-1.83-2.48V10.6a5.8 5.8 0 1 0 5.03 5.75V9.4a7.6 7.6 0 0 0 4.5 1.46V7.66a4.7 4.7 0 0 1-3.4-1.84z"/></svg>',
+
+  X:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3l-6.6 7.55L22 21h-6.3l-4.9-6.4L4.9 21H2l7.1-8.1L2.3 3h6.4l4.4 5.85L17.5 3zm-1.1 16.2h1.66L7.7 4.7H5.9l10.5 14.5z"/></svg>',
+
+  YouTube:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 7.2a3.02 3.02 0 0 0-2.12-2.14C19 4.55 12 4.55 12 4.55s-7 0-8.88.5A3.02 3.02 0 0 0 1 7.2 31.6 31.6 0 0 0 .5 12c0 1.6.17 3.2.5 4.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 8.88.51 8.88.51s7 0 8.88-.51A3.02 3.02 0 0 0 23 16.8c.33-1.6.5-3.2.5-4.8 0-1.6-.17-3.2-.5-4.8zM9.7 15.4V8.6L15.8 12l-6.1 3.4z"/></svg>',
+
+  WhatsApp:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.02 2.5c-5.25 0-9.52 4.25-9.52 9.5 0 1.68.44 3.3 1.28 4.73L2.5 21.5l4.9-1.28a9.53 9.53 0 0 0 4.62 1.18h.01c5.25 0 9.52-4.25 9.52-9.5s-4.26-9.4-9.53-9.4zm5.56 13.4c-.24.66-1.4 1.27-1.94 1.34-.5.07-1.12.1-1.8-.11a16.4 16.4 0 0 1-1.63-.6c-2.87-1.24-4.74-4.13-4.89-4.32-.14-.2-1.17-1.56-1.17-2.97s.72-2.1 1-2.39c.26-.28.57-.35.76-.35h.55c.18 0 .42-.07.65.5.24.58.82 2 .89 2.15.07.14.12.31.02.5-.1.2-.15.32-.3.49-.14.17-.3.38-.43.5-.14.14-.29.29-.13.57.17.28.75 1.24 1.61 2 1.11.99 2.04 1.3 2.32 1.45.28.14.45.12.61-.07.17-.2.72-.84.91-1.13.19-.28.38-.24.64-.14.26.09 1.66.78 1.94.93.28.14.47.21.54.33.07.13.07.72-.17 1.38z"/></svg>',
+
+  Telegram:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 3.3 11.5c-1.27.5-1.26 1.2-.23 1.5l4.78 1.5 1.84 5.6c.22.5.45.7.9.7.36 0 .52-.16.73-.36l1.74-1.68 3.62 2.67c.67.37 1.15.18 1.32-.62l2.39-11.24c.25-1-.36-1.4-1.09-1.24z"/></svg>',
+
+  Discord:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.9a18.3 18.3 0 0 0-4.6-1.43.07.07 0 0 0-.08.04c-.2.35-.42.8-.57 1.16a17 17 0 0 0-5.1 0 11 11 0 0 0-.58-1.16.07.07 0 0 0-.08-.04c-1.6.28-3.14.76-4.6 1.43a.07.07 0 0 0-.03.03C1.83 9 1.05 13 1.42 16.96a.08.08 0 0 0 .03.05 18.4 18.4 0 0 0 5.55 2.8.07.07 0 0 0 .08-.02c.43-.58.81-1.2 1.13-1.85a.07.07 0 0 0-.04-.1 12 12 0 0 1-1.73-.82.07.07 0 0 1 0-.12l.34-.27a.07.07 0 0 1 .07 0 13.2 13.2 0 0 0 11.16 0 .07.07 0 0 1 .07 0l.34.27a.07.07 0 0 1 0 .12c-.55.32-1.13.6-1.73.82a.07.07 0 0 0-.04.1c.33.65.71 1.27 1.13 1.85a.07.07 0 0 0 .08.02 18.3 18.3 0 0 0 5.56-2.8.07.07 0 0 0 .03-.05c.44-4.58-.74-8.55-3.13-11.96a.06.06 0 0 0-.03-.02zM8.52 14.6c-1.1 0-1.99-1-1.99-2.24s.88-2.24 1.99-2.24c1.12 0 2 1.01 1.99 2.24 0 1.23-.88 2.24-1.99 2.24zm6.96 0c-1.1 0-1.99-1-1.99-2.24s.87-2.24 1.99-2.24c1.12 0 2 1.01 1.99 2.24 0 1.23-.87 2.24-1.99 2.24z"/></svg>',
+
+  Facebook:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.16 8.44 9.92v-7.02H7.9v-2.9h2.54V9.84c0-2.5 1.49-3.9 3.77-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33V22c4.78-.76 8.44-4.92 8.44-9.94z"/></svg>',
+
+  Website:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9s1.2-6.5 3.6-9z"/></svg>',
+
+  Custom:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9.5 14.5 14.5 9.5M8.5 6.5l1-1a3.5 3.5 0 0 1 5 5l-1 1M15.5 17.5l-1 1a3.5 3.5 0 0 1-5-5l1-1"/></svg>'
+
+};
+
+
+function platformIcon(platform){
+
+  return (
+    PLATFORM_ICONS[platform] ||
+    PLATFORM_ICONS.Custom
+  );
+
+}
+
+
+/* =========================================================
+   PLATFORM CONFIG
+========================================================= */
+
+const PLATFORM_CONFIG = {
+
+  Instagram:{
+    label:"Username",
+    prefix:"instagram.com/",
+    placeholder:"username"
+  },
+
+  TikTok:{
+    label:"Username",
+    prefix:"tiktok.com/@",
+    placeholder:"username"
+  },
+
+  X:{
+    label:"Username",
+    prefix:"x.com/",
+    placeholder:"username"
+  },
+
+  YouTube:{
+    label:"Channel",
+    prefix:"youtube.com/@",
+    placeholder:"channel"
+  },
+
+  WhatsApp:{
+    label:"Phone number",
+    prefix:"wa.me/",
+    placeholder:"e.g. 15551234567"
+  },
+
+  Telegram:{
+    label:"Username",
+    prefix:"t.me/",
+    placeholder:"username"
+  },
+
+  Discord:{
+    label:"Invite link",
+    prefix:"",
+    placeholder:"discord.gg/invite"
+  },
+
+  Facebook:{
+    label:"Username",
+    prefix:"facebook.com/",
+    placeholder:"username"
+  },
+
+  Website:{
+    label:"Link",
+    prefix:"",
+    placeholder:"yourwebsite.com"
+  },
+
+  Custom:{
+    label:"Link",
+    prefix:"",
+    placeholder:"https://..."
+  }
+
+};
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let cardCode =
+  new URLSearchParams(
+    location.search
+  ).get("code") || "";
+
+let currentProfileId = null;
+
+let currentSlug = null;
+
+let avatar = "";
+
+let links = [];
+
+let gallery = [];
+
+
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
+
+function showToast(message){
+
+  const toast =
+    document.getElementById("toast");
+
+  toast.textContent =
+    message;
+
+  toast.classList.add("show");
+
+  clearTimeout(window._tt);
+
+  window._tt =
+    setTimeout(
+      () =>
+        toast.classList.remove("show"),
+      2600
+    );
+}
+
+
+function esc(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+
+/* =========================================================
+   CLEAN SOCIAL VALUE
+========================================================= */
+
+function clean(value){
+
+  return String(value || "")
+    .trim()
+    .replace(/^@/,"")
+    .replace(/^https?:\/\//i,"")
+    .replace(/^www\./i,"")
+    .replace(/\/+$/,"");
+
+}
+
+
+/* =========================================================
+   BUILD SOCIAL URL
+========================================================= */
+
+function buildSocialUrl(
+  platform,
+  rawValue
+){
+
+  const value =
+    String(rawValue || "")
+      .trim();
+
+  if(!value){
+    return "";
+  }
+
+
+  /*
+    If the user pasted a complete URL,
+    keep it exactly as a URL.
+  */
+
+  if(
+    /^https?:\/\//i.test(value)
+  ){
+    return value;
+  }
+
+
+  if(
+    /^www\./i.test(value)
+  ){
+    return `https://${value}`;
+  }
+
+
+  const cleaned =
+    clean(value);
+
+
+  switch(platform){
+
+    case "Instagram":
+      return `https://instagram.com/${cleaned}`;
+
+
+    case "TikTok":
+      return `https://tiktok.com/@${cleaned}`;
+
+
+    case "X":
+      return `https://x.com/${cleaned}`;
+
+
+    case "YouTube":
+      return `https://youtube.com/@${cleaned}`;
+
+
+    case "WhatsApp":
+
+      return (
+        "https://wa.me/" +
+        value.replace(/\D/g,"")
+      );
+
+
+    case "Telegram":
+      return `https://t.me/${cleaned}`;
+
+
+    case "Discord":
+
+      if(
+        /^discord\.gg\//i.test(cleaned)
+      ){
+        return `https://${cleaned}`;
+      }
+
+      return `https://discord.gg/${cleaned}`;
+
+
+    case "Facebook":
+      return `https://facebook.com/${cleaned}`;
+
+
+    case "Website":
+      return `https://${cleaned}`;
+
+
+    case "Custom":
+      return `https://${cleaned}`;
+
+
+    default:
+      return `https://${cleaned}`;
+
+  }
+
+}
+
+
+/* =========================================================
+   DISPLAY SUBTITLE
+========================================================= */
+
+function displaySubtitle(
+  platform,
+  value
+){
+
+  if(!value){
+    return "";
+  }
+
+
+  const raw =
+    String(value).trim();
+
+
+  /*
+    If database contains an old full URL,
+    display its domain/path.
+  */
+
+  if(
+    /^https?:\/\//i.test(raw)
+  ){
+
+    try{
+
+      const url =
+        new URL(raw);
+
+      return (
+        url.hostname +
+        url.pathname
+      ).replace(/\/$/,"");
+
+    }catch{
+
+      return raw;
+
+    }
+
+  }
+
+
+  const cfg =
+    PLATFORM_CONFIG[platform] ||
+    PLATFORM_CONFIG.Custom;
+
+
+  if(cfg.prefix){
+
+    return (
+      cfg.prefix +
+      clean(raw)
+    );
+
+  }
+
+
+  return clean(raw);
+
+}
+
+
+/* =========================================================
+   NORMALIZE ONE LINK
+========================================================= */
+
+function normalizeLink(link){
+
+  if(!link){
+    return null;
+  }
+
+
+  /*
+    FORMAT 1:
+
+    ["Instagram","piolo"]
+  */
+
+  if(Array.isArray(link)){
+
+    return {
+
+      platform:
+        link[0] ||
+        "Custom",
+
+      value:
+        String(
+          link[1] || ""
+        ).trim()
+
+    };
+
+  }
+
+
+  /*
+    FORMAT 2:
+
+    {
+      platform:"Instagram",
+      value:"piolo"
+    }
+  */
+
+
+  /*
+    FORMAT 3:
+
+    {
+      platform:"Instagram",
+      url:"https://instagram.com/piolo"
+    }
+
+    This is the important backward
+    compatibility fix.
+  */
+
+  if(typeof link === "object"){
+
+    return {
+
+      platform:
+        link.platform ||
+        link.type ||
+        "Custom",
+
+      value:
+        String(
+          link.value ??
+          link.url ??
+          link.link ??
+          ""
+        ).trim()
+
+    };
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =========================================================
+   NORMALIZE ALL LINKS
+========================================================= */
+
+function normalizeLinks(value){
+
+  if(!Array.isArray(value)){
+    return [];
+  }
+
+  return value
+    .map(normalizeLink)
+    .filter(Boolean);
+
+}
+
+
+/* =========================================================
+   RENDER PROFILE PREVIEW
+========================================================= */
+
+function renderView(){
+
+  const name =
+    document.getElementById(
+      "fName"
+    ).value || "";
+
+
+  const bio =
+    document.getElementById(
+      "fBio"
+    ).value || "";
+
+
+  /*
+    Avatar
+  */
+
+  document.getElementById(
+    "avatarBox"
+  ).innerHTML =
+
+    avatar
+
+      ? `<img src="${esc(avatar)}">`
+
+      : name
+          .split(" ")
+          .filter(Boolean)
+          .map(
+            x => x[0]
+          )
+          .slice(0,2)
+          .join("");
+
+
+  document.getElementById(
+    "viewName"
+  ).textContent =
+    name;
+
+
+  document.getElementById(
+    "viewBio"
+  ).textContent =
+    bio;
+
+
+  /*
+    Gallery
+  */
+
+  const galWrap =
+    document.getElementById(
+      "viewGallery"
+    );
+
+
+  galWrap.innerHTML =
+    gallery.length
+
+      ? gallery
+          .map(
+            url => `
+              <div class="galViewItem">
+                <img
+                  src="${esc(url)}"
+                  alt=""
+                >
+              </div>
+            `
+          )
+          .join("")
+
+      : "";
+
+
+  /*
+    Links
+  */
+
+  const list =
+    document.getElementById(
+      "viewLinks"
+    );
+
+
+  if(!links.length){
+
+    list.innerHTML = `
+      <div class="emptyState">
+        Tap the pencil above to add your first link
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  list.innerHTML =
+    links
+      .map(
+        (link,index) => {
+
+          const platform =
+            link.platform ||
+            "Custom";
+
+
+          const value =
+            String(
+              link.value ??
+              ""
+            ).trim();
+
+
+          const href =
+            buildSocialUrl(
+              platform,
+              value
+            );
+
+
+          const subtitle =
+            displaySubtitle(
+              platform,
+              value
+            );
+
+
+          /*
+            Never use href="#".
+          */
+
+          if(!href){
+
+            return `
+              <div class="linkRow">
+
+                <span class="linkBadge">
+                  ${platformIcon(platform)}
+                </span>
+
+                <span class="linkText">
+
+                  <span class="linkTitle">
+                    ${esc(platform)}
+                  </span>
+
+                </span>
+
+              </div>
+            `;
+
+          }
+
+
+          return `
+            <a
+              class="linkRow"
+              href="${esc(href)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+
+              <span class="linkBadge">
+                ${platformIcon(platform)}
+              </span>
+
+              <span class="linkText">
+
+                <span class="linkTitle">
+                  ${esc(platform)}
+                </span>
+
+                ${
+                  subtitle
+                    ? `
+                      <span class="linkSubtitle">
+                        ${esc(subtitle)}
+                      </span>
+                    `
+                    : ""
+                }
+
+              </span>
+
+              <span class="linkChevron">
+
+                <svg
+                  viewBox="0 0 8 14"
+                  fill="none"
+                  stroke="#000"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 1l6 6-6 6"/>
+                </svg>
+
+              </span>
+
+            </a>
+          `;
+
+        }
+      )
+      .join("");
+
+}
+
+
+/* =========================================================
+   DRAWER
+========================================================= */
+
+function openDrawer(){
+
+  /*
+    Normalize before displaying the editor.
+    This means old database data immediately
+    becomes editable.
+  */
+
+  links =
+    normalizeLinks(
+      links
+    );
+
+
+  renderLinkEditor();
+
+  renderGalleryEditor();
+
+  document
+    .getElementById(
+      "drawerBackdrop"
+    )
+    .classList.add("open");
+
+}
+
+
+function closeDrawer(){
+
+  document
+    .getElementById(
+      "drawerBackdrop"
+    )
+    .classList.remove("open");
+
+}
+
+
+/* =========================================================
+   LINK EDITOR
+========================================================= */
+
+function renderLinkEditor(){
+
+  const wrap =
+    document.getElementById(
+      "linkEditList"
+    );
+
+
+  /*
+    IMPORTANT:
+
+    Normalize every link BEFORE
+    rendering the input.
+
+    This prevents the username from
+    disappearing when old data uses
+    "url" instead of "value".
+  */
+
+  links =
+    normalizeLinks(
+      links
+    );
+
+
+  wrap.innerHTML =
+    links
+      .map(
+        (link,index) => {
+
+          const platform =
+            link.platform ||
+            "Custom";
+
+
+          const value =
+            String(
+              link.value ??
+              ""
+            ).trim();
+
+
+          const cfg =
+            PLATFORM_CONFIG[platform] ||
+            PLATFORM_CONFIG.Custom;
+
+
+          return `
+            <div class="linkEditRow">
+
+
+              <div class="platformPicker">
+
+                ${PLATFORMS
+                  .map(
+                    platformOption => `
+
+                      <button
+                        type="button"
+                        class="platformOpt ${
+                          platform === platformOption
+                            ? "active"
+                            : ""
+                        }"
+                        title="${esc(platformOption)}"
+                        onclick="
+                          setPlatform(
+                            ${index},
+                            '${platformOption}'
+                          )
+                        "
+                      >
+
+                        ${platformIcon(
+                          platformOption
+                        )}
+
+                      </button>
+
+                    `
+                  )
+                  .join("")}
+
+              </div>
+
+
+              <div class="row">
+
+                <span class="rowLabel">
+                  ${esc(cfg.label)}
+                </span>
+
+
+                <div class="valueInputWrap">
+
+                  ${
+                    cfg.prefix
+                      ? `
+                        <span class="valuePrefix">
+                          ${esc(cfg.prefix)}
+                        </span>
+                      `
+                      : ""
+                  }
+
+
+                  <input
+                    class="rowInput"
+                    placeholder="${esc(cfg.placeholder)}"
+                    value="${esc(value)}"
+
+                    oninput="
+                      updateLinkValue(
+                        ${index},
+                        this.value
+                      )
+                    "
+                  >
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="removeLink"
+                onclick="
+                  removeLinkRow(
+                    ${index}
+                  )
+                "
+              >
+                Remove link
+              </button>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+}
+
+
+/* =========================================================
+   UPDATE LINK VALUE
+========================================================= */
+
+function updateLinkValue(
+  index,
+  value
+){
+
+  if(!links[index]){
+    return;
+  }
+
+
+  /*
+    Always maintain:
+
+    {
+      platform:"Instagram",
+      value:"piolo"
+    }
+  */
+
+  links[index] = {
+
+    platform:
+      links[index].platform ||
+      "Custom",
+
+    value:
+      String(value || "").trim()
+
+  };
+
+
+  renderView();
+
+}
+
+
+/* =========================================================
+   CHANGE PLATFORM
+========================================================= */
+
+function setPlatform(
+  index,
+  platform
+){
+
+  if(!links[index]){
+    return;
+  }
+
+
+  /*
+    Preserve the username/value
+    when changing platform.
+  */
+
+  const oldValue =
+    String(
+      links[index].value ||
+      ""
+    ).trim();
+
+
+  links[index] = {
+
+    platform,
+
+    value:oldValue
+
+  };
+
+
+  renderLinkEditor();
+
+  renderView();
+
+}
+
+
+/* =========================================================
+   ADD LINK
+========================================================= */
+
+function addLinkRow(){
+
+  links.push({
+
+    platform:"Instagram",
+
+    value:""
+
+  });
+
+
+  renderLinkEditor();
+
+  renderView();
+
+}
+
+
+/* =========================================================
+   REMOVE LINK
+========================================================= */
+
+function removeLinkRow(index){
+
+  links.splice(
+    index,
+    1
+  );
+
+
+  renderLinkEditor();
+
+  renderView();
+
+}
+
+
+/* =========================================================
+   GALLERY EDITOR
+========================================================= */
+
+function renderGalleryEditor(){
+
+  const wrap =
+    document.getElementById(
+      "galleryEditGrid"
+    );
+
+
+  const slots = [];
+
+
+  gallery.forEach(
+    (url,index) => {
+
+      slots.push(`
+
+        <div class="galSlot">
+
+          <img
+            src="${esc(url)}"
+            alt=""
+          >
+
+          <button
+            type="button"
+            class="galRemove"
+            onclick="
+              removeGalleryPhoto(
+                ${index}
+              )
+            "
+          >
+            &times;
+          </button>
+
+        </div>
+
+      `);
+
+    }
+  );
+
+
+  if(gallery.length < 6){
+
+    slots.push(`
+
+      <label class="galSlot galAdd">
+
+        +
+
+        <input
+          type="file"
+          accept="image/*"
+          onchange="
+            if(this.files[0]){
+              uploadGalleryPhoto(
+                this.files[0]
+              );
+            }
+
+            this.value='';
+          "
+        >
+
+      </label>
+
+    `);
+
+  }
+
+
+  wrap.innerHTML =
+    slots.join("");
+
+}
+
+
+/* =========================================================
+   GALLERY UPLOAD
+========================================================= */
+
+async function uploadGalleryPhoto(
+  file
+){
+
+  if(gallery.length >= 6){
+
+    showToast(
+      "Max 6 photos"
+    );
+
+    return;
+
+  }
+
+
+  const {
+    data:{
+      user
+    }
+  } =
+    await sb.auth.getUser();
+
+
+  if(!user){
+
+    showToast(
+      "Please sign in again"
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !file.type ||
+    !file.type.startsWith("image/")
+  ){
+
+    showToast(
+      "Please choose an image"
+    );
+
+    return;
+
+  }
+
+
+  const ext =
+    (
+      file.name
+        .split(".")
+        .pop() ||
+      "jpg"
+    ).toLowerCase();
+
+
+  const filePath =
+    `${user.id}/${
+      currentProfileId ||
+      cardCode
+    }-gal-${Date.now()}.${ext}`;
+
+
+  const {
+    error:uploadError
+  } =
+    await sb.storage
+      .from("gallery")
+      .upload(
+        filePath,
+        file,
+        {
+          upsert:false,
+          contentType:file.type,
+          cacheControl:"3600"
+        }
+      );
+
+
+  if(uploadError){
+
+    showToast(
+      "Photo upload failed"
+    );
+
+    console.error(
+      "Gallery upload error:",
+      uploadError
+    );
+
+    return;
+
+  }
+
+
+  const {
+    data:{
+      publicUrl
+    }
+  } =
+    sb.storage
+      .from("gallery")
+      .getPublicUrl(
+        filePath
+      );
+
+
+  gallery.push(
+    publicUrl
+  );
+
+
+  renderGalleryEditor();
+
+  renderView();
+
+}
+
+
+/* =========================================================
+   REMOVE GALLERY
+========================================================= */
+
+function removeGalleryPhoto(
+  index
+){
+
+  gallery.splice(
+    index,
+    1
+  );
+
+
+  renderGalleryEditor();
+
+  renderView();
+
+}
+
+
+/* =========================================================
+   AVATAR UPLOAD
+========================================================= */
+
+document
+  .getElementById(
+    "avatarInput"
+  )
+  .addEventListener(
+    "change",
+    async function(event){
+
+      const file =
+        event.target.files[0];
+
+
+      if(!file){
+        return;
+      }
+
+
+      document
+        .getElementById(
+          "photoThumb"
+        )
+        .innerHTML =
+          "Uploading…";
+
+
+      const {
+        data:{
+          user
+        }
+      } =
+        await sb.auth.getUser();
+
+
+      if(!user){
+
+        showToast(
+          "Please sign in again"
+        );
+
+        document
+          .getElementById(
+            "photoThumb"
+          )
+          .innerHTML =
+            "Photo";
+
+        return;
+
+      }
+
+
+      if(
+        !file.type ||
+        !file.type.startsWith("image/")
+      ){
+
+        showToast(
+          "Please choose an image"
+        );
+
+        document
+          .getElementById(
+            "photoThumb"
+          )
+          .innerHTML =
+            "Photo";
+
+        return;
+
+      }
+
+
+      const ext =
+        (
+          file.name
+            .split(".")
+            .pop() ||
+          "jpg"
+        ).toLowerCase();
+
+
+      const filePath =
+        `${user.id}/${
+          currentProfileId ||
+          cardCode
+        }-${Date.now()}.${ext}`;
+
+
+      const {
+        error:uploadError
+      } =
+        await sb.storage
+          .from("avatars")
+          .upload(
+            filePath,
+            file,
+            {
+              upsert:false,
+              contentType:file.type,
+              cacheControl:"3600"
+            }
+          );
+
+
+      if(uploadError){
+
+        showToast(
+          "Photo upload failed"
+        );
+
+        console.error(
+          "Avatar upload error:",
+          uploadError
+        );
+
+        document
+          .getElementById(
+            "photoThumb"
+          )
+          .innerHTML =
+            "Photo";
+
+        return;
+
+      }
+
+
+      const {
+        data:{
+          publicUrl
+        }
+      } =
+        sb.storage
+          .from("avatars")
+          .getPublicUrl(
+            filePath
+          );
+
+
+      avatar =
+        publicUrl;
+
+
+      document
+        .getElementById(
+          "photoThumb"
+        )
+        .innerHTML =
+          `<img src="${esc(avatar)}">`;
+
+
+      renderView();
+
+    }
+  );
+
+
+/* =========================================================
+   LIVE TEXT PREVIEW
+========================================================= */
+
+[
+  "fName",
+  "fBio"
+].forEach(
+  id => {
+
+    document
+      .getElementById(id)
+      .addEventListener(
+        "input",
+        renderView
+      );
+
+  }
+);
+
+
+/* =========================================================
+   SAVE PROFILE
+========================================================= */
+
+async function saveProfile(){
+
+  const saveButton =
+    document.getElementById(
+      "saveButton"
+    );
+
+
+  const name =
+    document
+      .getElementById(
+        "fName"
+      )
+      .value
+      .trim();
+
+
+  const bio =
+    document
+      .getElementById(
+        "fBio"
+      )
+      .value
+      .trim();
+
+
+  /*
+    Prevent double-click saves.
+  */
+
+  saveButton.disabled =
+    true;
+
+  saveButton.textContent =
+    "Saving…";
+
+
+  try{
+
+
+    /* -----------------------------------------------------
+       NORMALIZE LINKS
+    ----------------------------------------------------- */
+
+    const normalizedLinks =
+      normalizeLinks(
+        links
+      )
+      .filter(
+        link =>
+          link &&
+          link.value
+      );
+
+
+    links =
+      normalizedLinks;
+
+
+    console.log(
+      "GAVE — LINKS BEING SAVED:",
+      normalizedLinks
+    );
+
+
+    /* -----------------------------------------------------
+       CLAIM CARD
+    ----------------------------------------------------- */
+
+    if(!currentProfileId){
+
+      if(!cardCode){
+
+        throw new Error(
+          "No card code found."
+        );
+
+      }
+
+
+      const slug =
+        cardCode +
+        "-" +
+        Math.random()
+          .toString(36)
+          .slice(2,6);
+
+
+      const {
+        data,
+        error
+      } =
+        await sb.rpc(
+          "claim_card",
+          {
+            p_short_code:
+              cardCode,
+
+            p_slug:
+              slug,
+
+            p_mode:
+              "link"
+          }
+        );
+
+
+      if(error){
+
+        console.error(
+          "Claim error:",
+          error
+        );
+
+        throw new Error(
+          "Could not claim this card."
+        );
+
+      }
+
+
+      currentProfileId =
+        data;
+
+      currentSlug =
+        slug;
+
+    }
+
+
+    /* -----------------------------------------------------
+       UPDATE PROFILE
+    ----------------------------------------------------- */
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("profiles")
+        .update({
+
+          name,
+
+          bio,
+
+          avatar_url:
+            avatar,
+
+          data:{
+
+            links:
+              normalizedLinks,
+
+            gallery:
+              gallery
+
+          }
+
+        })
+        .eq(
+          "id",
+          currentProfileId
+        )
+        .select();
+
+
+    if(error){
+
+      console.error(
+        "PROFILE UPDATE ERROR:",
+        error
+      );
+
+      throw new Error(
+        error.message ||
+        "Profile update failed."
+      );
+
+    }
+
+
+    if(
+      !data ||
+      data.length === 0
+    ){
+
+      console.error(
+        "PROFILE UPDATE RETURNED ZERO ROWS"
+      );
+
+      throw new Error(
+        "Nothing was saved. Check your profile permissions."
+      );
+
+    }
+
+
+    console.log(
+      "GAVE — PROFILE SAVED:",
+      data[0]
+    );
+
+
+    /*
+      IMPORTANT:
+
+      Take the actual returned database
+      value and normalize it again.
+
+      This guarantees that the editor is
+      displaying what Supabase actually saved.
+    */
+
+    const savedProfile =
+      data[0];
+
+
+    links =
+      normalizeLinks(
+        savedProfile.data &&
+        savedProfile.data.links
+      );
+
+
+    gallery =
+      (
+        savedProfile.data &&
+        Array.isArray(
+          savedProfile.data.gallery
+        )
+      )
+        ? savedProfile.data.gallery
+        : [];
+
+
+    currentSlug =
+      savedProfile.slug ||
+      currentSlug;
+
+
+    /*
+      Close and refresh UI.
+    */
+
+    closeDrawer();
+
+    renderView();
+
+    showToast(
+      "Saved — your card is live"
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "GAVE SAVE ERROR:",
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      "Save failed"
+    );
+
+
+  }finally{
+
+    saveButton.disabled =
+      false;
+
+    saveButton.textContent =
+      "Save";
+
+  }
+
+}
+
+
+/* =========================================================
+   SHARE
+========================================================= */
+
+function shareProfile(){
+
+  const url =
+    currentSlug
+      ? `${location.origin}/p/${currentSlug}`
+      : location.href;
+
+
+  if(
+    navigator.clipboard
+  ){
+
+    navigator.clipboard
+      .writeText(url)
+      .catch(
+        () => {}
+      );
+
+  }
+
+
+  showToast(
+    "Link copied: " + url
+  );
+
+}
+
+
+/* =========================================================
+   MAGIC LINK
+========================================================= */
+
+async function sendMagicLink(){
+
+  const email =
+    document
+      .getElementById(
+        "authEmail"
+      )
+      .value
+      .trim();
+
+
+  const msg =
+    document
+      .getElementById(
+        "authMsg"
+      );
+
+
+  if(!email){
+
+    msg.textContent =
+      "Enter a valid email.";
+
+    return;
+
+  }
+
+
+  msg.textContent =
+    "Sending…";
+
+
+  const {
+    error
+  } =
+    await sb.auth
+      .signInWithOtp({
+
+        email,
+
+        options:{
+          emailRedirectTo:
+            location.href
+        }
+
+      });
+
+
+  if(error){
+
+    msg.textContent =
+      "Something went wrong. Try again.";
+
+    console.error(
+      "Magic link error:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  msg.textContent =
+    "Check your email for a sign-in link, then come back to this tab.";
+
+}
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+async function initApp(){
+
+  try{
+
+
+    /* -----------------------------------------------------
+       CARD CODE
+    ----------------------------------------------------- */
+
+    if(!cardCode){
+
+      document
+        .getElementById(
+          "loadingScreen"
+        )
+        .innerHTML =
+          "No card code found in the link. Scan your gave. card again.";
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------------
+       AUTH SESSION
+    ----------------------------------------------------- */
+
+    const {
+      data:{
+        session
+      },
+      error:authError
+    } =
+      await sb.auth.getSession();
+
+
+    if(authError){
+
+      console.error(
+        "Auth session error:",
+        authError
+      );
+
+    }
+
+
+    if(!session){
+
+      document
+        .getElementById(
+          "loadingScreen"
+        )
+        .classList
+        .add("hidden");
+
+
+      document
+        .getElementById(
+          "authGate"
+        )
+        .classList
+        .remove("hidden");
+
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------------
+       FIND CARD
+    ----------------------------------------------------- */
+
+    const {
+      data:card,
+      error:cardError
+    } =
+      await sb
+        .from("cards")
+        .select(
+          "status, profile_id"
+        )
+        .eq(
+          "short_code",
+          cardCode
+        )
+        .single();
+
+
+    if(cardError){
+
+      console.error(
+        "Card load error:",
+        cardError
+      );
+
+    }
+
+
+    /* -----------------------------------------------------
+       CLAIMED CARD
+    ----------------------------------------------------- */
+
+    if(
+      card &&
+      card.status === "claimed" &&
+      card.profile_id
+    ){
+
+
+      const {
+        data:profile,
+        error:profileError
+      } =
+        await sb
+          .from("profiles")
+          .select("*")
+          .eq(
+            "id",
+            card.profile_id
+          )
+          .single();
+
+
+      if(profileError){
+
+        console.error(
+          "Profile load error:",
+          profileError
+        );
+
+      }
+
+
+      if(profile){
+
+        currentProfileId =
+          profile.id;
+
+
+        currentSlug =
+          profile.slug;
+
+
+        document
+          .getElementById(
+            "fName"
+          )
+          .value =
+            profile.name ||
+            "";
+
+
+        document
+          .getElementById(
+            "fBio"
+          )
+          .value =
+            profile.bio ||
+            "";
+
+
+        avatar =
+          profile.avatar_url ||
+          "";
+
+
+        if(avatar){
+
+          document
+            .getElementById(
+              "photoThumb"
+            )
+            .innerHTML =
+              `<img src="${esc(avatar)}">`;
+
+        }
+
+
+        /*
+          THIS IS THE IMPORTANT FIX.
+
+          Whatever Supabase returns:
+
+          {platform,value}
+
+          {platform,url}
+
+          {platform,link}
+
+          [platform,value]
+
+          gets converted to:
+
+          {platform,value}
+        */
+
+        links =
+          normalizeLinks(
+            profile.data &&
+            profile.data.links
+          );
+
+
+        gallery =
+          (
+            profile.data &&
+            Array.isArray(
+              profile.data.gallery
+            )
+          )
+            ? profile.data.gallery
+            : [];
+
+
+        console.log(
+          "GAVE — LINKS LOADED FROM DATABASE:",
+          links
+        );
+
+
+        /*
+          Render editor now so the actual
+          saved username is available.
+        */
+
+        renderLinkEditor();
+
+        renderGalleryEditor();
+
+      }
+
+
+    }else{
+
+
+      /*
+        New / unclaimed card
+      */
+
+      setTimeout(
+        openDrawer,
+        300
+      );
+
+    }
+
+
+    /* -----------------------------------------------------
+       RENDER
+    ----------------------------------------------------- */
+
+    renderView();
+
+
+    document
+      .getElementById(
+        "loadingScreen"
+      )
+      .classList
+      .add("hidden");
+
+
+    document
+      .getElementById(
+        "authGate"
+      )
+      .classList
+      .add("hidden");
+
+
+  }catch(error){
+
+    console.error(
+      "GAVE INIT ERROR:",
+      error
+    );
+
+
+    document
+      .getElementById(
+        "loadingScreen"
+      )
+      .innerHTML =
+        "Something went wrong loading your card.";
+
+  }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+initApp();
+
+</script>
+
+</body>
+
+</html>
