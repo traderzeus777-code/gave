@@ -4,8 +4,12 @@ import EditButton from "./EditButton";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
 );
+
+// Cache each public profile at the edge; a tap storm hits the cache, not Supabase.
+export const revalidate = 30;
 
 export default async function ProfilePage({ params }) {
   const { slug } = await params;
@@ -14,7 +18,7 @@ export default async function ProfilePage({ params }) {
     .from("profiles")
     .select("*")
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
   if (!profile) {
     return (
